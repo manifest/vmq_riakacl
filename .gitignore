@@ -21,3 +21,6 @@ erl_crash.dump
 *.d
 *.plt
 
+# Project
+priv/riak/modules/beam
+
