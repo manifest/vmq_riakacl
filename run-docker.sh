@@ -1,6 +1,7 @@
 #!/bin/bash
 
 RIAKACL_DIR='/opt/sandbox/vmq_riakacl'
+RIAKKV_HOST='http://localhost:8098'
 
 read -r DOCKER_RUN_COMMAND <<-EOF
 	riak start \
@@ -8,24 +9,26 @@ read -r DOCKER_RUN_COMMAND <<-EOF
 	&& mkdir -p /opt/riak.modules/beam \
 	&& /usr/lib/riak/erts-5.10.3/bin/erlc -o /opt/riak.modules/beam /opt/riak.modules/src/*.erl \
 	&& curl -fSL \
-		-XPUT "http://localhost:8098/search/schema/session" \
+		-XPUT "${RIAKKV_HOST}/search/schema/session" \
 		-H 'Content-Type: application/xml' \
 		--data-binary @"${RIAKACL_DIR}/priv/riak/schemas/session.xml" \
 	&& curl -fSL \
-		-XPUT "http://localhost:8098/search/index/session_idx" \
+		-XPUT "${RIAKKV_HOST}/search/index/session_idx" \
 		-H 'Content-Type: application/json' \
 		-d '{"schema":"session"}' \
-	&& riak-admin bucket-type create session_t '{"props":{"search_index":"session_idx"}}' \
+	&& riak-admin bucket-type create session_t \
+		'{"props":{"search_index":"session_idx","dvv_enabled":false,"allow_mult":false,"last_write_wins":true,"backend":"memory"}}' \
 	&& riak-admin bucket-type activate session_t \
 	&& curl -fSL \
-		-XPUT "http://localhost:8098/search/schema/acl" \
+		-XPUT "${RIAKKV_HOST}/search/schema/acl" \
 		-H 'Content-Type: application/xml' \
 		--data-binary @"${RIAKACL_DIR}/priv/riak/schemas/acl.xml" \
 	&& curl -fSL \
-		-XPUT "http://localhost:8098/search/index/acl_idx" \
+		-XPUT "${RIAKKV_HOST}/search/index/acl_idx" \
 		-H 'Content-Type: application/json' \
 		-d '{"schema":"acl"}' \
-	&& riak-admin bucket-type create acl_t '{"props":{"search_index":"acl_idx"}}' \
+	&& riak-admin bucket-type create acl_t \
+		'{"props":{"search_index":"acl_idx","dvv_enabled":false,"allow_mult":false,"last_write_wins":true,"backend":"memory_ttl"}}' \
 	&& riak-admin bucket-type activate acl_t
 EOF
 
