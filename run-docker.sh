@@ -1,35 +1,45 @@
 #!/bin/bash
 
 RIAKACL_DIR='/opt/sandbox/vmq_riakacl'
-RIAKKV_HOST='http://localhost:8098'
+
+function PROPS() {
+	local INDEX_NAME="${1}"
+	local BUCKET_OPTIONS="${2}"
+	if [[ ${BUCKET_OPTIONS} ]]; then
+		echo "{\"props\":{\"search_index\":\"${INDEX_NAME}\",${BUCKET_OPTIONS}}}"
+	else
+		echo "{\"props\":{\"search_index\":\"${INDEX_NAME}\"}}"
+	fi
+}
+
+function CREATE_TYPE() {
+	local HOST='http://localhost:8098'
+	local SCHEMA_NAME="${1}"
+	local INDEX_NAME="${1}_idx"
+	local TYPE_NAME="${1}_t"
+	local BUCKET_OPTIONS="${2}"
+	read -r RESULT <<-EOF
+		curl -fSL \
+			-XPUT "${HOST}/search/schema/${SCHEMA_NAME}" \
+			-H 'Content-Type: application/xml' \
+			--data-binary @"${RIAKACL_DIR}/priv/riak/schemas/${SCHEMA_NAME}.xml" \
+		&& curl -fSL \
+			-XPUT "${HOST}/search/index/${INDEX_NAME}" \
+			-H 'Content-Type: application/json' \
+			-d '{"schema":"${SCHEMA_NAME}"}' \
+		&& riak-admin bucket-type create ${TYPE_NAME} '$(PROPS ${INDEX_NAME} ${BUCKET_OPTIONS})' \
+		&& riak-admin bucket-type activate ${TYPE_NAME}
+	EOF
+	echo "${RESULT}"
+}
 
 read -r DOCKER_RUN_COMMAND <<-EOF
 	riak start \
 	&& riak-admin wait-for-service riak_kv \
 	&& mkdir -p /opt/riak.modules/beam \
 	&& /usr/lib/riak/erts-5.10.3/bin/erlc -o /opt/riak.modules/beam /opt/riak.modules/src/*.erl \
-	&& curl -fSL \
-		-XPUT "${RIAKKV_HOST}/search/schema/session" \
-		-H 'Content-Type: application/xml' \
-		--data-binary @"${RIAKACL_DIR}/priv/riak/schemas/session.xml" \
-	&& curl -fSL \
-		-XPUT "${RIAKKV_HOST}/search/index/session_idx" \
-		-H 'Content-Type: application/json' \
-		-d '{"schema":"session"}' \
-	&& riak-admin bucket-type create session_t \
-		'{"props":{"search_index":"session_idx","dvv_enabled":false,"allow_mult":false,"last_write_wins":true,"backend":"memory"}}' \
-	&& riak-admin bucket-type activate session_t \
-	&& curl -fSL \
-		-XPUT "${RIAKKV_HOST}/search/schema/acl" \
-		-H 'Content-Type: application/xml' \
-		--data-binary @"${RIAKACL_DIR}/priv/riak/schemas/acl.xml" \
-	&& curl -fSL \
-		-XPUT "${RIAKKV_HOST}/search/index/acl_idx" \
-		-H 'Content-Type: application/json' \
-		-d '{"schema":"acl"}' \
-	&& riak-admin bucket-type create acl_t \
-		'{"props":{"search_index":"acl_idx","dvv_enabled":false,"allow_mult":false,"last_write_wins":true,"backend":"memory_ttl"}}' \
-	&& riak-admin bucket-type activate acl_t
+	&& $(CREATE_TYPE session '"dvv_enabled":false,"allow_mult":false,"last_write_wins":true,"backend":"memory"') \
+	&& $(CREATE_TYPE acl '"dvv_enabled":false,"allow_mult":false,"last_write_wins":true,"backend":"memory_ttl"')
 EOF
 
 docker build -t sandbox/vmq_riakacl .
