@@ -1,6 +1,6 @@
 #!/bin/bash
 
-RIAKACL_DIR='/opt/sandbox/vmq_riakacl'
+PROJECT_DIR='/opt/sandbox/vmq_riakacl'
 
 function PROPS() {
 	local INDEX_NAME="${1}"
@@ -22,7 +22,7 @@ function CREATE_TYPE() {
 		curl -fSL \
 			-XPUT "${HOST}/search/schema/${SCHEMA_NAME}" \
 			-H 'Content-Type: application/xml' \
-			--data-binary @"${RIAKACL_DIR}/priv/riak/schemas/${SCHEMA_NAME}.xml" \
+			--data-binary @"${PROJECT_DIR}/priv/riak/schemas/${SCHEMA_NAME}.xml" \
 		&& curl -fSL \
 			-XPUT "${HOST}/search/index/${INDEX_NAME}" \
 			-H 'Content-Type: application/json' \
@@ -44,12 +44,11 @@ EOF
 
 docker build -t sandbox/vmq_riakacl .
 docker run -ti --rm \
-	-v $(pwd):${RIAKACL_DIR} \
+	-v $(pwd):${PROJECT_DIR} \
 	-v $(pwd)/priv/riak/modules:/opt/riak.modules \
 	-p 8098:8098 \
 	-p 8087:8087 \
 	-p 8093:8093 \
 	-p 8985:8985 \
 	sandbox/vmq_riakacl \
-	/bin/bash -c "set -x && ${DOCKER_RUN_COMMAND} && set +x && cd ${RIAKACL_DIR} && /bin/bash"
-
+	/bin/bash -c "set -x && ${DOCKER_RUN_COMMAND} && set +x && cd ${PROJECT_DIR} && /bin/bash"
