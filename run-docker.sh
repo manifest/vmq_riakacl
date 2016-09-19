@@ -1,6 +1,7 @@
 #!/bin/bash
 
 PROJECT_DIR='/opt/sandbox/vmq_riakacl'
+DOCKER_PROJECT_COMMAND=${DOCKER_PROJECT_COMMAND:-/bin/bash}
 
 function PROPS() {
 	local INDEX_NAME="${1}"
@@ -37,12 +38,12 @@ read -r DOCKER_RUN_COMMAND <<-EOF
 	vernemq start \
 	&& vmq-admin plugin disable --name vmq_passwd \
 	&& vmq-admin plugin disable --name vmq_acl \
-	&& riak start \
-	&& riak-admin wait-for-service riak_kv \
 	&& mkdir -p /opt/riak.modules/beam \
 	&& /usr/lib/riak/erts-5.10.3/bin/erlc -o /opt/riak.modules/beam /opt/riak.modules/src/*.erl \
-	&& $(CREATE_TYPE session '"dvv_enabled":false,"allow_mult":false,"last_write_wins":true,"backend":"bitcask"') \
-	&& $(CREATE_TYPE acl '"dvv_enabled":false,"allow_mult":false,"last_write_wins":true,"backend":"memory_ttl"')
+	&& riak start \
+	&& riak-admin wait-for-service riak_kv \
+	&& $(CREATE_TYPE vmq-riakacl-session '"dvv_enabled":false,"allow_mult":false,"last_write_wins":true,"backend":"bitcask"') \
+	&& $(CREATE_TYPE vmq-riakacl-acl '"dvv_enabled":false,"allow_mult":false,"last_write_wins":true,"backend":"memory_ttl"')
 EOF
 
 docker build -t sandbox/vmq_riakacl .
@@ -54,4 +55,4 @@ docker run -ti --rm \
 	-p 8093:8093 \
 	-p 8985:8985 \
 	sandbox/vmq_riakacl \
-	/bin/bash -c "set -x && ${DOCKER_RUN_COMMAND} && set +x && cd ${PROJECT_DIR} && /bin/bash"
+	/bin/bash -c "set -x && ${DOCKER_RUN_COMMAND} && set +x && cd ${PROJECT_DIR} && ${DOCKER_PROJECT_COMMAND}"

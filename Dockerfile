@@ -80,4 +80,3 @@ RUN set -xe \
 ## -----------------------------------------------------------------------------
 RUN set -xe \
 	&& perl -pi -e 's/(riak_control = )off/${1}on/' /etc/riak/riak.conf
-

@@ -1,7 +1,7 @@
 %% ----------------------------------------------------------------------------
 %% The MIT License
 %%
-%% Copyright (c) 2016 Andrei Nesterov <ae.nesterov@gmail.com>
+%% Copyright (c) 2016 Davydenkov Mihail <davydenkov.mihail@gmail.com>
 %%
 %% Permission is hereby granted, free of charge, to any person obtaining a copy
 %% of this software and associated documentation files (the "Software"), to
@@ -22,32 +22,55 @@
 %% IN THE SOFTWARE.
 %% ----------------------------------------------------------------------------
 
--module(vmq_riakacl_sup).
--behaviour(supervisor).
+-module(vmq_riakacl_session).
 
 %% API
 -export([
-	start_link/0
+	bucket/0,
+	content_type/0,
+	index/0,
+	list/1
 ]).
 
-%% Supervisor callbacks
--export([
-	init/1
-]).
+%% =============================================================================
+%% API
+%% =============================================================================
+
+-spec bucket() -> tuple().
+bucket() ->
+	{<<"vmq-riakacl-session_t">>, <<"vmq-riakacl-session">>}.
+
+-spec content_type() -> binary().
+content_type() ->
+	<<"application/json">>.
+
+-spec list(map()) -> list(binary()).
+list(#{account_id := AccountId}) ->
+	list_([index(), <<"account_id:", AccountId/binary>>]);
+list(#{client_id := ClientId}) ->
+	list_([index(), <<"client_id:", ClientId/binary>>]).
+
+-spec index() -> binary().
+index() ->
+	<<"vmq-riakacl-session_idx">>.
 
 %% =============================================================================
 %% Internal functions
 %% =============================================================================
 
--spec start_link() -> supervisor:startlink_ret().
-start_link() ->
-	supervisor:start_link({local, ?MODULE}, ?MODULE, {}).
+-spec list_(list()) -> list(binary()).
+list_(Query) ->
+	case catch riakc_pool:query(default, search, Query) of
+		{ok, {search_results, Docs, _, _}} -> parse_docs(Docs);
+		{error, Reason}                    -> exit(Reason);
+		{'EXIT', Reason}                   -> exit(Reason);
+		Else                               -> exit({bad_return_value, Else})
+	end.
 
-%% =============================================================================
-%% Supervisor callbacks
-%% =============================================================================
+-spec parse_docs([{binary(), [tuple()]}]) -> list(binary()).
+parse_docs(Docs) ->
+	[begin
+		{_, Val} = lists:keyfind(<<"_yz_rk">>, 1, Doc),
+		Val
+	end || {_Index, Doc} <- Docs].
 
-init({}) ->
-	Flags = #{strategy => one_for_one},
-	Procs = [riakc_pool:child_spec(PoolDesc) || PoolDesc <- vmq_riakacl:pools()],
-	{ok, {Flags, Procs}}.

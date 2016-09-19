@@ -4,10 +4,12 @@ PROJECT_VERSION = 0.1.0
 
 DEPS = \
 	vmq_commons \
-	riakc_pool
+	riakc_pool \
+	jsx
 
-dep_vmq_commons = git git://github.com/erlio/vmq_commons.git 1.0.0
-dep_riakc_pool = git git://github.com/manifest/riak-connection-pool.git master
+dep_vmq_commons = git git://github.com/erlio/vmq_commons.git 7b6171b90ae778e99c1154b49cfb62b42728cb12
+dep_riakc_pool = git git://github.com/manifest/riak-connection-pool.git v0.1.0
+dep_jsx = git git://github.com/talentdeficit/jsx.git v2.8.0
 
 SHELL_DEPS = tddreloader
 SHELL_OPTS = \

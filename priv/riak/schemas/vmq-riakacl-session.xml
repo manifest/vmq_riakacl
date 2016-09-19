@@ -3,7 +3,7 @@
 
 	<fields>
 		<field name="account_id" type="string" indexed="true" stored="false" multiValued="false" />
-		<field name="client_id" type="string" indexed="false" stored="false" multiValued="false" />
+		<field name="client_id" type="string" indexed="true" stored="false" multiValued="false" />
 		<field name="broker_id" type="string" indexed="true" stored="false" multiValued="false" />
 		<field name="cat" type="tint64" indexed="true" stored="false" multiValued="false" />
 

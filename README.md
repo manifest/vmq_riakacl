@@ -5,7 +5,6 @@
 The plugin for VerneMQ that provides client authorization based on ACL stored in Riak KV.
 
 
-
 ### How To Use
 
 Build and run the docker container
@@ -25,14 +24,19 @@ Let's allow user 'joe' connecting to the broker and publishing to the 'greetings
 
 ```bash
 $ curl -fSL \
-	-XPUT http://localhost:8098/types/acl_t/buckets/acl/keys/user%2Fjoe%3Acon \
+	-XPUT http://localhost:8098/types/vmq-riakacl-acl_t/buckets/vmq-riakacl-acl/keys/joe%3Acon \
 	-H 'Content-Type: application/json' \
 	-d '{"account_id":"joe","role":"user","limit":3,"exp":4607280000000000,"cat":1472688000000000}'
 $ curl -fSL \
-	-XPUT http://localhost:8098/types/acl_t/buckets/acl/keys/user%2Fjoe%3Apub%3Agreetings \
+	-XPUT http://localhost:8098/types/vmq-riakacl-acl_t/buckets/vmq-riakacl-acl/keys/joe%3Asub%3Agreetings \
 	-H 'Content-Type: application/json' \
-	-d '{"account_id":"joe","qos":0,"retain":false,"exp":4607280000000000,"cat":1472688000000000}'
+	-d '{"account_id":"joe","qos":0,"retain":false,"exp":4607280000000000,"cat":1472688000000000,"role":"user"}'
+$ curl -fSL \
+	-XPUT http://localhost:8098/types/vmq-riakacl-acl_t/buckets/vmq-riakacl-acl/keys/joe%3Apub%3Agreetings \
+	-H 'Content-Type: application/json' \
+	-d '{"account_id":"joe","qos":0,"retain":false,"exp":4607280000000000,"cat":1472688000000000,"role":"user"}'
 
+$ mosquitto_sub -h localhost -t greetings -i user/joe/web -u user/joe -P 123
 $ mosquitto_pub -h localhost -t greetings -m hello -i user/joe/web -u user/joe -P 123
 ```
 
