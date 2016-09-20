@@ -41,11 +41,13 @@ RUN set -xe \
 ## -----------------------------------------------------------------------------
 RUN set -xe \
 	&& echo '[{riak_kv, [{add_paths, ["/opt/riak.modules/beam"]}]}].' > /etc/riak/advanced.config \
-	&& perl -pi -e 's/(storage_backend = )bitcask/${1}multi\n\
+	&& perl -pi -e 's/storage_backend = .*/\
+		storage_backend = multi\n\
 		multi_backend.default = bitcask\n\
 		multi_backend.bitcask.storage_backend = bitcask\n\
-		multi_backend.bitcask.bitcask.data_root = \/var\/lib\/riak\/bitcask\
-		multi_backend.memory_ttl.memory.ttl = 1d\
+		multi_backend.bitcask.bitcask.data_root = \/var\/lib\/riak\/bitcask\n\
+		multi_backend.memory_ttl.storage_backend = memory\n\
+		multi_backend.memory_ttl.memory_backend.ttl = 1d\
 		/' /etc/riak/riak.conf \
 	&& perl -pi -e 's/(listener.http.internal = )127\.0\.0\.1/${1}0.0.0.0/' /etc/riak/riak.conf \
 	&& perl -pi -e 's/(listener.protobuf.internal = )127\.0\.0\.1/${1}0.0.0.0/' /etc/riak/riak.conf \
