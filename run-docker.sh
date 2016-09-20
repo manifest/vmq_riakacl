@@ -38,7 +38,7 @@ read -r DOCKER_RUN_COMMAND <<-EOF
 	&& riak-admin wait-for-service riak_kv \
 	&& mkdir -p /opt/riak.modules/beam \
 	&& /usr/lib/riak/erts-5.10.3/bin/erlc -o /opt/riak.modules/beam /opt/riak.modules/src/*.erl \
-	&& $(CREATE_TYPE session '"dvv_enabled":false,"allow_mult":false,"last_write_wins":true,"backend":"memory"') \
+	&& $(CREATE_TYPE session '"dvv_enabled":false,"allow_mult":false,"last_write_wins":true,"backend":"bitcask"') \
 	&& $(CREATE_TYPE acl '"dvv_enabled":false,"allow_mult":false,"last_write_wins":true,"backend":"memory_ttl"')
 EOF
 
