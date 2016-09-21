@@ -3,11 +3,11 @@
 
 	<fields>
 		<field name="account_id" type="string" indexed="false" stored="false" multiValued="false" />
+		<field name="role" type="string" indexed="false" stored="false" multiValued="false" />
 		<field name="exp" type="int64" indexed="false" stored="false" multiValued="false" />
 		<field name="cat" type="tint64" indexed="false" stored="false" multiValued="false" />
 		<field name="qos" type="int32" indexed="false" stored="false" multiValued="false" />
 		<field name="retain" type="boolean" indexed="false" stored="false" multiValued="false" />
-		<field name="service" type="string" indexed="false" stored="false" multiValued="false" />
 		<field name="limit" type="int32" indexed="false" stored="false" multiValued="false" />
 
 		<!-- All of these fields are required by Riak Search -->
