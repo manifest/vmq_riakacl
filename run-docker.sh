@@ -34,7 +34,8 @@ function CREATE_TYPE() {
 }
 
 read -r DOCKER_RUN_COMMAND <<-EOF
-	riak start \
+	service rsyslog start \
+	&& riak start \
 	&& riak-admin wait-for-service riak_kv \
 	&& mkdir -p /opt/riak.modules/beam \
 	&& /usr/lib/riak/erts-5.10.3/bin/erlc -o /opt/riak.modules/beam /opt/riak.modules/src/*.erl \
