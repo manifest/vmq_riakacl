@@ -14,13 +14,27 @@ Build and run the docker container
 $ ./run-docker.sh
 ```
 
-Execute following commands in container's shell:
+We need to build and enable the plugin. Execute following commands in container's shell:
 
 ```bash
 $ make rel
 $ vmq-admin plugin enable --name vmq_riakacl --path $(pwd)/_rel/vmq_riakacl
 ```
 
+Let's allow user 'joe' connecting to the broker and publishing to the 'greetings' topic:
+
+```bash
+$ curl -fSL \
+	-XPUT http://localhost:8098/types/acl_t/buckets/acl/keys/user%2Fjoe%3Acon \
+	-H 'Content-Type: application/json' \
+	-d '{"account_id":"joe","role":"user","limit":3,"exp":4607280000000000,"cat":1472688000000000}'
+$ curl -fSL \
+	-XPUT http://localhost:8098/types/acl_t/buckets/acl/keys/user%2Fjoe%3Apub%3Agreetings \
+	-H 'Content-Type: application/json' \
+	-d '{"account_id":"joe","qos":0,"retain":false,"exp":4607280000000000,"cat":1472688000000000}'
+
+$ mosquitto_pub -h localhost -t greetings -m hello -i user/joe/web -u user/joe -P 123
+```
 
 
 ### License
