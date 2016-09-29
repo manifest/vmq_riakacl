@@ -34,7 +34,9 @@ function CREATE_TYPE() {
 }
 
 read -r DOCKER_RUN_COMMAND <<-EOF
-	service rsyslog start \
+	vernemq start \
+	&& vmq-admin plugin disable --name vmq_passwd \
+	&& vmq-admin plugin disable --name vmq_acl \
 	&& riak start \
 	&& riak-admin wait-for-service riak_kv \
 	&& mkdir -p /opt/riak.modules/beam \
